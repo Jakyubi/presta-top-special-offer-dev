@@ -5,7 +5,7 @@ if(!defined('_PS_VERSION_')){
 
 class SpecialOffers extends Module
 { 
-    
+
     public function __construct()
     {
         $this->name = 'specialoffers';
@@ -15,7 +15,7 @@ class SpecialOffers extends Module
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
             'min' => '1.7.0.0',
-            'max' => '8.99.99',
+            'max' => _PS_VERSION_,
         ];
         $this->bootstrap = true;
         $this->is_configurable = 1;
@@ -54,7 +54,6 @@ class SpecialOffers extends Module
             return Db::getInstance()->execute($sql);
     }
 
-
     public function uninstall()
     {
         return(
@@ -86,7 +85,7 @@ class SpecialOffers extends Module
             'banners' => $banners,
         ]);
 
-        return $this->display(__FILE__, 'views/templates/template.tpl');
+        return $this->display(__FILE__, 'views/templates/hook/displayFrontBanner.tpl');
     }
     
     
@@ -97,7 +96,6 @@ class SpecialOffers extends Module
             $enabled = Tools::getValue('SPECIALOFFERS_ENABLE');
             $bannerId = Tools::getValue('BANNER_ID');
             $bannerEnabled = Tools::getValue('BANNER_ENABLE');
-            //Configuration::updateValue('SPECIALOFFERS_TEXT', $text, true);
             Configuration::updateValue('SPECIALOFFERS_ENABLE', $enabled);
 
             if(!empty(trim($text))){
@@ -128,61 +126,31 @@ class SpecialOffers extends Module
         }
 
         $bannerEdit = null;
+        
         if(Tools::isSubmit('editBanner')){
             $idBanner = (int)Tools::getValue('editBanner');
             $bannerEdit = Db::getInstance()->getRow('SELECT * FROM '._DB_PREFIX_.'specialoffers_banners WHERE id_banner = '.$idBanner);
         }
-
+        
         if(Tools::isSubmit('deleteBanner')){
             $idBanner = (int)Tools::getValue('deleteBanner');
             Db::getInstance()->delete('specialoffers_banners', 'id_banner='.(int)$idBanner);
         }
-
-        $active_tab = 'settings';
-        if (Tools::isSubmit('submitStyleForm')) {
-            $active_tab = 'style';
-        }
-
-        $content = // WORK IN PROGRESS
-            '<ul class="nav nav-tabs" role="tablist">
-                <li class="'.($active_tab == 'settings' ? 'active' : '').'">
-                    <a href="#tab-settings" data-toggle="tab">'.$this->l('Settings').'</a>
-                </li>
-                <li class="'.($active_tab == 'style' ? 'active' : '').'">
-                    <a href="#tab-style" data-toggle="tab">'.$this->l('Style').'</a>
-                </li>
-            </ul>
-            <div class="tab-content" >
-                <div class="tab-pane '.($active_tab == 'settings' ? 'active' : '').'" id="tab-settings">
-                    '.$this->displaySettingsForm($bannerEdit).'
-                </div>
-                <div class="tab-pane '.($active_tab == 'style' ? 'active' : '').'" id="tab-style">
-                    '.$this->displayStyleForm().'
-                </div>
-            </div>';
-
+        
+        $active_tab = Tools::isSubmit('submitStyleForm') ? 'style' : 'settings';
         $banners = $this->getBanners(false);
 
-        foreach ($banners as $banner){
-            $content .= '
-            <div>
-            '.htmlspecialchars($banner['id_banner']).'
-            '.htmlspecialchars($banner['text']).'
+        $this->context->smarty->assign([
+            'active_tab' => $active_tab,
+            'banner_edit' => $bannerEdit,
+            'banners' => $banners,
+            'form_settings' => $this->displaySettingsForm($bannerEdit),
+            'form_style' => $this->displayStyleForm(),
+            'link' => $this->context->link,
+            'module' => $this,
+        ]);
 
-            <a href="'.$this->context->link->getAdminLink('AdminModules', true, [], [
-                'configure' => $this->name,
-                'editBanner' => $banner['id_banner']
-            ]).'">'.$this->l('Edit').'</a>
-
-            <a href="'.$this->context->link->getAdminLink('AdminModules', true, [], [
-                'configure' => $this->name,
-                'deleteBanner' => $banner['id_banner']
-            ]).'">'.$this->l('Delete').'</a>
-            '.htmlspecialchars($banner['enabled']).'
-        </div>';
-        }
-
-        return $content;
+        return $this->Display(__FILE__, 'views/templates/admin/configure.tpl');
 
     }
 
@@ -238,7 +206,7 @@ class SpecialOffers extends Module
                         'rows' => 10,
                         'cols' => 50,
                     ],
-                    [
+                    [ // banner id
                         'type' => 'hidden',
                         'name' => 'BANNER_ID'
                     ],
@@ -256,10 +224,6 @@ class SpecialOffers extends Module
         $helper->fields_value['SPECIALOFFERS_ENABLE'] = 
         Tools::getValue('SPECIALOFFERS_ENABLE', Configuration::get('SPECIALOFFERS_ENABLE'));
 
-        /*
-                $helper->fields_value['SPECIALOFFERS_TEXT'] =
-                Tools::getValue('SPECIALOFFERS_TEXT', Configuration::get('SPECIALOFFERS_TEXT'));
-        */
         $helper->fields_value['BANNER_ENABLE'] = $bannerEdit ? $bannerEdit['enabled'] : 1;
         $helper->fields_value['SPECIALOFFERS_TEXT'] = $bannerEdit ? $bannerEdit['text'] : '';
         $helper->fields_value['BANNER_ID'] = $bannerEdit ? $bannerEdit['id_banner'] : '';
@@ -310,7 +274,7 @@ class SpecialOffers extends Module
     public function getHelper()
     {
         $helper = new HelperForm();
-        //$helper->module = $this;
+        $helper->module = $this;
         $helper->table = $this->table;
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
