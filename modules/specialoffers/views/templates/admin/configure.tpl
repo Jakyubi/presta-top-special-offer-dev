@@ -20,6 +20,9 @@
         <div>
             {$banner.id_banner|escape:'html':'UTF-8'}
             {$banner.text|escape:'html':'UTF-8'}
+            {$banner.date_start|escape:'html':'UTF-8'}
+            {$banner.date_end|escape:'html':'UTF-8'}
+
 
             <a href="{$link->getAdminLink('AdminModules', true, [], [
                 'configure' => $module->name, 'editBanner' => $banner.id_banner])}">

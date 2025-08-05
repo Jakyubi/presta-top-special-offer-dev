@@ -48,6 +48,8 @@ class SpecialOffers extends Module
             `id_banner` int(11) unsigned NOT NULL AUTO_INCREMENT,
             `text` TEXT,
             `enabled` TINYINT(1) DEFAULT 1,
+            `date_start` DATE DEFAULT NULL,
+            `date_end` DATE DEFAULT NULL,
             PRIMARY KEY (`id_banner`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
@@ -91,23 +93,29 @@ class SpecialOffers extends Module
     
     public function getContent()
     {
-        if(Tools::isSubmit('submitSettingsForm')){
+        if(Tools::isSubmit('submitSettingsForm')){ //take data from settings form
             $text = Tools::getValue('SPECIALOFFERS_TEXT');
             $enabled = Tools::getValue('SPECIALOFFERS_ENABLE');
             $bannerId = Tools::getValue('BANNER_ID');
             $bannerEnabled = Tools::getValue('BANNER_ENABLE');
+            $dateStart = Tools::getValue('SPECIALOFFERS_DATE_START');   //sets start/end date from form
+            $dateEnd = Tools::getValue('SPECIALOFFERS_DATE_END');       //sets null to 0000-00-00
             Configuration::updateValue('SPECIALOFFERS_ENABLE', $enabled);
 
             if(!empty(trim($text))){
                 if($bannerId){
-                    Db::getInstance()->update('specialoffers_banners', [
+                    Db::getInstance()->update('specialoffers_banners', [ //update banner
                         'text' => pSQL($text),
                         'enabled' => (int)$bannerEnabled,
+                        'date_start' => pSQL($dateStart),
+                        'date_end' => pSQL($dateEnd),
                     ], 'id_banner = ' . $bannerId);
                 }else{
-                    Db::getInstance()->insert('specialoffers_banners', [
+                    Db::getInstance()->insert('specialoffers_banners', [ //insert new banner
                         'text' => pSQL($text),
-                        'enabled' => (int)$bannerEnabled
+                        'enabled' => (int)$bannerEnabled,
+                        'date_start' => pSQL($dateStart),
+                        'date_end' => pSQL($dateEnd),
                     ]);   
                 }
             }
@@ -117,7 +125,7 @@ class SpecialOffers extends Module
             ]));
         }
 
-        if(Tools::isSubmit('submitStyleForm')){
+        if(Tools::isSubmit('submitStyleForm')){ //take data from style form
             $textColor = Tools::getValue('SPECIALOFFERS_TEXT_COLOR');
             $bgColor = Tools::getValue('SPECIALOFFERS_BG_COLOR');
 
@@ -210,6 +218,17 @@ class SpecialOffers extends Module
                         'type' => 'hidden',
                         'name' => 'BANNER_ID'
                     ],
+                    [ // start date
+                        'type' => 'date',
+                        'label' => $this->l('Start date'),
+                        'name' => 'SPECIALOFFERS_DATE_START',
+                        
+                    ],
+                    [ // end date
+                        'type' => 'date',
+                        'label' => $this->l('End date'),
+                        'name' => 'SPECIALOFFERS_DATE_END'
+                    ],
                 ],
                 'submit' => [
                     'title' => $this->l('Save'),
@@ -227,6 +246,8 @@ class SpecialOffers extends Module
         $helper->fields_value['BANNER_ENABLE'] = $bannerEdit ? $bannerEdit['enabled'] : 1;
         $helper->fields_value['SPECIALOFFERS_TEXT'] = $bannerEdit ? $bannerEdit['text'] : '';
         $helper->fields_value['BANNER_ID'] = $bannerEdit ? $bannerEdit['id_banner'] : '';
+        $helper->fields_value['SPECIALOFFERS_DATE_START'] = $bannerEdit ? $bannerEdit['date_start'] : '' ;
+        $helper->fields_value['SPECIALOFFERS_DATE_END'] = $bannerEdit ? $bannerEdit['date_end'] : '';
 
         return $helper->generateForm([$form]);
 
@@ -287,9 +308,13 @@ class SpecialOffers extends Module
 
     public function getBanners($onlyEnabled = false)
     {
+        $dateNow = date('Y-m-d'); //current date
         $sql = 'SELECT * FROM `'._DB_PREFIX_.'specialoffers_banners`';
 
-        if($onlyEnabled){$sql .= ' WHERE enabled=1';}
+        if($onlyEnabled){
+            $sql .= ' WHERE enabled=1
+                    AND (date_start IS NULL OR date_start <= "'.$dateNow.'")
+                    AND (date_end IS NULL OR date_end >= "'.$dateNow.'")';}
 
         return Db::getInstance()->executeS($sql);
     }
