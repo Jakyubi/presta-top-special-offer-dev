@@ -26,7 +26,7 @@ class SpecialOffers extends Module
         $this->description = $this->trans('Description of module', [], 'Modules.Specialoffers.Admin');
         $this->confirmUninstall = $this->trans('Are you sure to uninstall?', [], 'Modules.Specialoffers.Admin');
 
-        if(!Configuration::get('SPECIALOFFERS_NAME')){
+        if(!Configuration::get('SPECIALOFFERS_MODULE_NAME')){
             $this->warning = $this->trans('No name provided', [], 'Modules.Specialoffers.Admin');
         }
     }
@@ -37,7 +37,7 @@ class SpecialOffers extends Module
             parent::install()
             && $this->installDb()
             && $this->registerHook('displayBanner')
-            && Configuration::updateValue('SPECIALOFFERS_NAME', 'Special offers')
+            && Configuration::updateValue('SPECIALOFFERS_MODULE_NAME', 'Special offers')
         );
     }
 
@@ -61,7 +61,7 @@ class SpecialOffers extends Module
         return(
             parent::uninstall()
             && $this->uninstallDb()
-            && Configuration::deleteByName('SPECIALOFFERS_NAME')
+            && Configuration::deleteByName('SPECIALOFFERS_MODULE_NAME')
             );
     }   
 
@@ -74,7 +74,7 @@ class SpecialOffers extends Module
 
     public function hookDisplayBanner($params)
     {
-        $enabled = (bool) Configuration::get('SPECIALOFFERS_ENABLE');
+        $enabled = (bool) Configuration::get('SPECIALOFFERS_MODULE_ENABLE');
         if(!$enabled){
             return '';
         }
@@ -82,8 +82,8 @@ class SpecialOffers extends Module
         $banners = $this->getBanners(true);
 
         $this->context->smarty->assign([
-            'specialoffers_text_color' => Configuration::get('SPECIALOFFERS_TEXT_COLOR'),
-            'specialoffers_bg_color' => Configuration::get('SPECIALOFFERS_BG_COLOR'),
+            'specialoffers_banner_text_color' => Configuration::get('SPECIALOFFERS_BANNER_TEXT_COLOR'),
+            'specialoffers_banner_bg_color' => Configuration::get('SPECIALOFFERS_BANNER_BG_COLOR'),
             'banners' => $banners,
         ]);
 
@@ -94,13 +94,13 @@ class SpecialOffers extends Module
     public function getContent()
     {
         if(Tools::isSubmit('submitSettingsForm')){ //take data from settings form
-            $text = Tools::getValue('SPECIALOFFERS_TEXT');
-            $enabled = Tools::getValue('SPECIALOFFERS_ENABLE');
-            $bannerId = Tools::getValue('BANNER_ID');
-            $bannerEnabled = Tools::getValue('BANNER_ENABLE');
-            $dateStart = Tools::getValue('SPECIALOFFERS_DATE_START');   //sets start/end date from form
-            $dateEnd = Tools::getValue('SPECIALOFFERS_DATE_END');       //sets null to 0000-00-00
-            Configuration::updateValue('SPECIALOFFERS_ENABLE', $enabled);
+            $text = Tools::getValue('SPECIALOFFERS_BANNER_TEXT');
+            $enabled = Tools::getValue('SPECIALOFFERS_MODULE_ENABLE');
+            $bannerId = Tools::getValue('SPECIALOFFERS_BANNER_ID');
+            $bannerEnabled = Tools::getValue('SPECIALOFFERS_BANNER_ENABLE');
+            $dateStart = Tools::getValue('SPECIALOFFERS_BANNER_DATE_START');   //sets start/end date from form
+            $dateEnd = Tools::getValue('SPECIALOFFERS_BANNER_DATE_END');       //sets null to 0000-00-00
+            Configuration::updateValue('SPECIALOFFERS_MODULE_ENABLE', $enabled);
 
             if(!empty(trim($text))){
                 if($bannerId){
@@ -126,11 +126,11 @@ class SpecialOffers extends Module
         }
 
         if(Tools::isSubmit('submitStyleForm')){ //take data from style form
-            $textColor = Tools::getValue('SPECIALOFFERS_TEXT_COLOR');
-            $bgColor = Tools::getValue('SPECIALOFFERS_BG_COLOR');
+            $textColor = Tools::getValue('SPECIALOFFERS_BANNER_TEXT_COLOR');
+            $bgColor = Tools::getValue('SPECIALOFFERS_BANNER_BG_COLOR');
 
-            Configuration::updateValue('SPECIALOFFERS_TEXT_COLOR', $textColor);
-            Configuration::updateValue('SPECIALOFFERS_BG_COLOR', $bgColor);
+            Configuration::updateValue('SPECIALOFFERS_BANNER_TEXT_COLOR', $textColor);
+            Configuration::updateValue('SPECIALOFFERS_BANNER_BG_COLOR', $bgColor);
         }
 
         $bannerEdit = null;
@@ -158,7 +158,7 @@ class SpecialOffers extends Module
             'module' => $this,
         ]);
 
-        return $this->Display(__FILE__, 'views/templates/admin/configure.tpl');
+        return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
 
     }
 
@@ -173,7 +173,7 @@ class SpecialOffers extends Module
                     [ // module on/off
                         'type' => 'switch',
                         'label' => $this->l('Enable module'),
-                        'name' => 'SPECIALOFFERS_ENABLE',
+                        'name' => 'SPECIALOFFERS_MODULE_ENABLE',
                         'is_bool' => true,
                         'values' => [
                             [
@@ -191,7 +191,7 @@ class SpecialOffers extends Module
                     [ // banner on/off
                         'type' => 'switch',
                         'label' => $this->l('Enable banner'),
-                        'name' => 'BANNER_ENABLE',
+                        'name' => 'SPECIALOFFERS_BANNER_ENABLE',
                         'is_bool' => true,
                         'values' => [
                             [
@@ -209,25 +209,25 @@ class SpecialOffers extends Module
                     [ // text input
                         'type' => 'textarea',
                         'label' => $this->l('Text to display'),
-                        'name' => 'SPECIALOFFERS_TEXT',
+                        'name' => 'SPECIALOFFERS_BANNER_TEXT',
                         'autoload_rte' => false,
                         'rows' => 10,
                         'cols' => 50,
                     ],
                     [ // banner id
                         'type' => 'hidden',
-                        'name' => 'BANNER_ID'
+                        'name' => 'SPECIALOFFERS_BANNER_ID'
                     ],
                     [ // start date
                         'type' => 'date',
                         'label' => $this->l('Start date'),
-                        'name' => 'SPECIALOFFERS_DATE_START',
+                        'name' => 'SPECIALOFFERS_BANNER_DATE_START',
                         
                     ],
                     [ // end date
                         'type' => 'date',
                         'label' => $this->l('End date'),
-                        'name' => 'SPECIALOFFERS_DATE_END'
+                        'name' => 'SPECIALOFFERS_BANNER_DATE_END'
                     ],
                 ],
                 'submit' => [
@@ -240,14 +240,14 @@ class SpecialOffers extends Module
         $helper = $this->getHelper();
         $helper->submit_action = 'submitSettingsForm';
         
-        $helper->fields_value['SPECIALOFFERS_ENABLE'] = 
-        Tools::getValue('SPECIALOFFERS_ENABLE', Configuration::get('SPECIALOFFERS_ENABLE'));
+        $helper->fields_value['SPECIALOFFERS_MODULE_ENABLE'] = 
+        Tools::getValue('SPECIALOFFERS_MODULE_ENABLE', Configuration::get('SPECIALOFFERS_MODULE_ENABLE'));
 
-        $helper->fields_value['BANNER_ENABLE'] = $bannerEdit ? $bannerEdit['enabled'] : 1;
-        $helper->fields_value['SPECIALOFFERS_TEXT'] = $bannerEdit ? $bannerEdit['text'] : '';
-        $helper->fields_value['BANNER_ID'] = $bannerEdit ? $bannerEdit['id_banner'] : '';
-        $helper->fields_value['SPECIALOFFERS_DATE_START'] = $bannerEdit ? $bannerEdit['date_start'] : '' ;
-        $helper->fields_value['SPECIALOFFERS_DATE_END'] = $bannerEdit ? $bannerEdit['date_end'] : '';
+        $helper->fields_value['SPECIALOFFERS_BANNER_ENABLE'] = $bannerEdit ? $bannerEdit['enabled'] : 1;
+        $helper->fields_value['SPECIALOFFERS_BANNER_TEXT'] = $bannerEdit ? $bannerEdit['text'] : '';
+        $helper->fields_value['SPECIALOFFERS_BANNER_ID'] = $bannerEdit ? $bannerEdit['id_banner'] : '';
+        $helper->fields_value['SPECIALOFFERS_BANNER_DATE_START'] = $bannerEdit ? $bannerEdit['date_start'] : '' ;
+        $helper->fields_value['SPECIALOFFERS_BANNER_DATE_END'] = $bannerEdit ? $bannerEdit['date_end'] : '';
 
         return $helper->generateForm([$form]);
 
@@ -264,12 +264,12 @@ class SpecialOffers extends Module
                     [ // text color
                         'type' => 'color',
                         'label' => $this->l('Text color'),
-                        'name' => 'SPECIALOFFERS_TEXT_COLOR',
+                        'name' => 'SPECIALOFFERS_BANNER_TEXT_COLOR',
                     ],
                     [ // background color
                         'type' => 'color',
                         'label' => $this->l('Background color'),
-                        'name' => 'SPECIALOFFERS_BG_COLOR',
+                        'name' => 'SPECIALOFFERS_BANNER_BG_COLOR',
                     ],
                 ],
                 'submit' => [
@@ -283,11 +283,11 @@ class SpecialOffers extends Module
         $helper = $this->getHelper();
         $helper->submit_action = 'submitStyleForm';
 
-        $helper->fields_value['SPECIALOFFERS_TEXT_COLOR'] =
-        Tools::getValue('SPECIALOFFERS_TEXT_COLOR', Configuration::get('SPECIALOFFERS_TEXT_COLOR'));
+        $helper->fields_value['SPECIALOFFERS_BANNER_TEXT_COLOR'] =
+        Tools::getValue('SPECIALOFFERS_BANNER_TEXT_COLOR', Configuration::get('SPECIALOFFERS_BANNER_TEXT_COLOR'));
 
-        $helper->fields_value['SPECIALOFFERS_BG_COLOR'] =
-        Tools::getValue('SPECIALOFFERS_BG_COLOR', Configuration::get('SPECIALOFFERS_BG_COLOR'));
+        $helper->fields_value['SPECIALOFFERS_BANNER_BG_COLOR'] =
+        Tools::getValue('SPECIALOFFERS_BANNER_BG_COLOR', Configuration::get('SPECIALOFFERS_BANNER_BG_COLOR'));
 
         return $helper->generateForm([$form]);
     }
@@ -313,8 +313,8 @@ class SpecialOffers extends Module
 
         if($onlyEnabled){
             $sql .= ' WHERE enabled=1
-                    AND (date_start IS NULL OR date_start <= "'.$dateNow.'")
-                    AND (date_end IS NULL OR date_end >= "'.$dateNow.'")';}
+                    AND (date_start IS NULL OR date_start="0000-00-00" OR date_start <= "'.$dateNow.'")
+                    AND (date_end IS NULL OR date_end="0000-00-00" OR date_end >= "'.$dateNow.'")';}
 
         return Db::getInstance()->executeS($sql);
     }
