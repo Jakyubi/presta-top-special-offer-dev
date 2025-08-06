@@ -37,6 +37,7 @@ class SpecialOffers extends Module
             parent::install()
             && $this->installDb()
             && $this->registerHook('displayBanner')
+            && $this->registerHook('actionFrontControllerSetMedia')
             && Configuration::updateValue('SPECIALOFFERS_MODULE_NAME', 'Special offers')
         );
     }
@@ -71,6 +72,30 @@ class SpecialOffers extends Module
         return Db::getInstance()->execute($sql);
     }
 
+    public function hookActionFrontControllerSetMedia($params)
+    {
+        if($this->context->controller->php_self === 'index'){
+
+            $this->context->controller->registerStylesheet(
+                'splide-css',
+                'modules/'.$this->name.'/resources/styles/splide.min.css',
+                ['media'=>'all', 'priority' => 150]
+            );
+            
+            $this->context->controller->registerJavascript(
+                'splide-js', 
+                'modules/'.$this->name.'/resources/scripts/splide.min.js',
+                ['media'=>'all', 'priority' => 150]
+            );
+            
+            $this->context->controller->registerJavascript(
+                'splide-init', 
+                'modules/'.$this->name.'/resources/scripts/splide-init.js',
+                ['priority' => 160]
+            );
+        }
+        
+    }
 
     public function hookDisplayBanner($params)
     {
@@ -214,6 +239,12 @@ class SpecialOffers extends Module
                         'rows' => 10,
                         'cols' => 50,
                     ],
+                    [ // display banner id during edit
+                        'type' => 'text',
+                        'label' => $this->l('Banner ID'),
+                        'name' => 'SPECIALOFFERS_BANNER_ID_DISPLAY',
+                        'readonly' => true,
+                    ],
                     [ // banner id
                         'type' => 'hidden',
                         'name' => 'SPECIALOFFERS_BANNER_ID'
@@ -248,6 +279,7 @@ class SpecialOffers extends Module
         $helper->fields_value['SPECIALOFFERS_BANNER_ID'] = $bannerEdit ? $bannerEdit['id_banner'] : '';
         $helper->fields_value['SPECIALOFFERS_BANNER_DATE_START'] = $bannerEdit ? $bannerEdit['date_start'] : '' ;
         $helper->fields_value['SPECIALOFFERS_BANNER_DATE_END'] = $bannerEdit ? $bannerEdit['date_end'] : '';
+        $helper->fields_value['SPECIALOFFERS_BANNER_ID_DISPLAY'] = $bannerEdit ? $bannerEdit['id_banner'] : '' ;
 
         return $helper->generateForm([$form]);
 
@@ -320,5 +352,3 @@ class SpecialOffers extends Module
     }
 
 }
-
-

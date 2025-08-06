@@ -6,9 +6,7 @@ td{
 th{
     padding:2px 5px;
 }
-
 </style>
-
 <ul class="nav nav-tabs" role="tablist">
     <li class="{if $active_tab == 'settings'}active{/if}">
         <a href="#tab-settings" data-toggle="tab">{l s='Settings' mod='specialoffers'}</a>
