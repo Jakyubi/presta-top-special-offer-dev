@@ -28,6 +28,8 @@ th{
 <table>
     <tr> 
         <th>id</th>
+        <th>id group</th>
+        <th>id lang</th>
         <th>text</th>
         <th>date start</th>
         <th>date end</th>
@@ -37,8 +39,10 @@ th{
     </tr>
     {foreach from=$banners item=$banner}
         <div>
-        <tr>
+        <tr>                
                 <td>{$banner.id_banner|escape:'html':'UTF-8'}</td>
+                <td>{$banner.id_group|escape:'html':'UTF-8'}</td>
+                <td>{$banner.id_lang|escape:'html':'UTF-8'}</td>
                 <td>{$banner.text|escape:'html':'UTF-8'}</td>
                 <td>{$banner.date_start|escape:'html':'UTF-8'}</td>
                 <td>{$banner.date_end|escape:'html':'UTF-8'}</td>
@@ -46,13 +50,13 @@ th{
 
                 <td>
                 <a href="{$link->getAdminLink('AdminModules', true, [], [
-                    'configure' => $module->name, 'editBanner' => $banner.id_banner])}">
+                    'configure' => $module->name, 'editBanner' => $banner.id_group])}">
                     {l s='Edit' mod='specialoffers'}</a>
                 </td>
 
                 <td>
                 <a href="{$link->getAdminLink('AdminModules', true, [], [
-                    'configure' => $module->name, 'deleteBanner' => $banner.id_banner])}">
+                    'configure' => $module->name, 'deleteBanner' => $banner.id_group])}">
                     {l s='Delete' mod='specialoffers'}</a>
                 </td>
         </tr>

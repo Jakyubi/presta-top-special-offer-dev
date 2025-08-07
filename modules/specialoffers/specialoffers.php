@@ -47,6 +47,8 @@ class SpecialOffers extends Module
         $sql = 
             'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'specialoffers_banners`(
             `id_banner` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `id_group` int(11) NOT NULL,
+            `id_lang` int(11) NOT NULL,
             `text` TEXT,
             `enabled` TINYINT(1) DEFAULT 1,
             `date_start` DATE DEFAULT NULL,
@@ -118,32 +120,54 @@ class SpecialOffers extends Module
     
     public function getContent()
     {
+        $languages = Language::getLanguages();
+        $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
+
         if(Tools::isSubmit('submitSettingsForm')){ //take data from settings form
-            $text = Tools::getValue('SPECIALOFFERS_BANNER_TEXT');
             $enabled = Tools::getValue('SPECIALOFFERS_MODULE_ENABLE');
-            $bannerId = Tools::getValue('SPECIALOFFERS_BANNER_ID');
             $bannerEnabled = Tools::getValue('SPECIALOFFERS_BANNER_ENABLE');
             $dateStart = Tools::getValue('SPECIALOFFERS_BANNER_DATE_START');   //sets start/end date from form
             $dateEnd = Tools::getValue('SPECIALOFFERS_BANNER_DATE_END');       //sets null to 0000-00-00
+            $bannerGroupId = (int)Tools::getValue('SPECIALOFFERS_BANNER_GROUP_ID');
+            
             Configuration::updateValue('SPECIALOFFERS_MODULE_ENABLE', $enabled);
 
-            if(!empty(trim($text))){
-                if($bannerId){
-                    Db::getInstance()->update('specialoffers_banners', [ //update banner
-                        'text' => pSQL($text),
-                        'enabled' => (int)$bannerEnabled,
-                        'date_start' => pSQL($dateStart),
-                        'date_end' => pSQL($dateEnd),
-                    ], 'id_banner = ' . $bannerId);
-                }else{
-                    Db::getInstance()->insert('specialoffers_banners', [ //insert new banner
-                        'text' => pSQL($text),
-                        'enabled' => (int)$bannerEnabled,
-                        'date_start' => pSQL($dateStart),
-                        'date_end' => pSQL($dateEnd),
-                    ]);   
+            if(!$bannerGroupId){
+                $bannerGroupId = (int) Db::getInstance()->getValue(
+                    'SELECT MAX(id_group) FROM '._DB_PREFIX_.'specialoffers_banners') +1;
+            }
+
+            foreach ($languages as $lang){
+                $id_lang = (int)$lang['id_lang'];
+                $text = Tools::getValue('SPECIALOFFERS_BANNER_TEXT_'.$id_lang);
+
+                $existing = Db::getInstance()->getValue(
+                    'SELECT COUNT(*) FROM '._DB_PREFIX_.'specialoffers_banners
+                    WHERE id_group = '.(int)$bannerGroupId.' AND id_lang = '.(int)$id_lang
+                );
+
+                if(!empty(trim($text))){
+                    if($existing){
+                        Db::getInstance()->update('specialoffers_banners', [ //update banner
+                            'text' => pSQL($text),
+                            'enabled' => (int)$bannerEnabled,
+                            'date_start' => pSQL($dateStart),
+                            'date_end' => pSQL($dateEnd),
+                        ], 'id_group = ' . $bannerGroupId.' AND id_lang = '.(int)$id_lang);
+                    }else{
+                        Db::getInstance()->insert('specialoffers_banners', [ //insert new banner
+                            'id_group' => $bannerGroupId,
+                            'id_lang' => $id_lang,                            
+                            'text' => pSQL($text),
+                            'enabled' => (int)$bannerEnabled,
+                            'date_start' => pSQL($dateStart),
+                            'date_end' => pSQL($dateEnd),
+                        ]);   
+                    }
                 }
             }
+
+
 
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => $this->name
@@ -161,13 +185,16 @@ class SpecialOffers extends Module
         $bannerEdit = null;
         
         if(Tools::isSubmit('editBanner')){
-            $idBanner = (int)Tools::getValue('editBanner');
-            $bannerEdit = Db::getInstance()->getRow('SELECT * FROM '._DB_PREFIX_.'specialoffers_banners WHERE id_banner = '.$idBanner);
+            $idGroup = (int)Tools::getValue('editBanner');
+
+            $bannerEdit = Db::getInstance()->executeS('
+            SELECT * FROM '._DB_PREFIX_.'specialoffers_banners 
+            WHERE id_group = '.(int)$idGroup);
         }
         
         if(Tools::isSubmit('deleteBanner')){
-            $idBanner = (int)Tools::getValue('deleteBanner');
-            Db::getInstance()->delete('specialoffers_banners', 'id_banner='.(int)$idBanner);
+            $idGroup = (int)Tools::getValue('deleteBanner');
+            Db::getInstance()->delete('specialoffers_banners', 'id_group='.(int)$idGroup);
         }
         
         $active_tab = Tools::isSubmit('submitStyleForm') ? 'style' : 'settings';
@@ -189,6 +216,26 @@ class SpecialOffers extends Module
 
     public function displaySettingsForm($bannerEdit = null)
     {
+        $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
+
+
+        $commonData = [
+            'enabled' => 1,
+            'id_banner' => '',
+            'id_group' => '',
+            'date_start' => '',
+            'date_end' => ''
+        ];
+
+        if($bannerEdit) {
+            $firstRow = $bannerEdit[0];
+            $commonData['enabled'] = $firstRow['enabled'];
+            $commonData['id_banner'] = $firstRow['id_banner'];
+            $commonData['id_group'] = $firstRow['id_group'];
+            $commonData['date_start'] = $firstRow['date_start'];
+            $commonData['date_end'] = $firstRow['date_end'];
+        }
+
         $form = [
             'form' => [
                 'legend' => [
@@ -232,12 +279,13 @@ class SpecialOffers extends Module
                         ],
                     ],
                     [ // text input
-                        'type' => 'textarea',
+                        'type' => 'text',
                         'label' => $this->l('Text to display'),
                         'name' => 'SPECIALOFFERS_BANNER_TEXT',
                         'autoload_rte' => false,
                         'rows' => 10,
                         'cols' => 50,
+                        'lang' => true,
                     ],
                     [ // display banner id during edit
                         'type' => 'text',
@@ -246,8 +294,14 @@ class SpecialOffers extends Module
                         'readonly' => true,
                     ],
                     [ // banner id
+                        'type' => 'text',
+                        'label' => $this->l('Group ID'),
+                        'readonly' => true,
+                        'name' => 'SPECIALOFFERS_BANNER_GROUP_ID',
+                    ],
+                    [
                         'type' => 'hidden',
-                        'name' => 'SPECIALOFFERS_BANNER_ID'
+                        'name' => 'SPECIALOFFERS_BANNER_GROUP_ID_DISPLAY',
                     ],
                     [ // start date
                         'type' => 'date',
@@ -268,18 +322,38 @@ class SpecialOffers extends Module
             ],
         ];
 
+        $languages = Language::getLanguages();
+
         $helper = $this->getHelper();
         $helper->submit_action = 'submitSettingsForm';
         
         $helper->fields_value['SPECIALOFFERS_MODULE_ENABLE'] = 
         Tools::getValue('SPECIALOFFERS_MODULE_ENABLE', Configuration::get('SPECIALOFFERS_MODULE_ENABLE'));
 
-        $helper->fields_value['SPECIALOFFERS_BANNER_ENABLE'] = $bannerEdit ? $bannerEdit['enabled'] : 1;
-        $helper->fields_value['SPECIALOFFERS_BANNER_TEXT'] = $bannerEdit ? $bannerEdit['text'] : '';
-        $helper->fields_value['SPECIALOFFERS_BANNER_ID'] = $bannerEdit ? $bannerEdit['id_banner'] : '';
-        $helper->fields_value['SPECIALOFFERS_BANNER_DATE_START'] = $bannerEdit ? $bannerEdit['date_start'] : '' ;
-        $helper->fields_value['SPECIALOFFERS_BANNER_DATE_END'] = $bannerEdit ? $bannerEdit['date_end'] : '';
-        $helper->fields_value['SPECIALOFFERS_BANNER_ID_DISPLAY'] = $bannerEdit ? $bannerEdit['id_banner'] : '' ;
+        $helper->fields_value['SPECIALOFFERS_BANNER_ENABLE'] = $commonData['enabled']; 
+        $helper->fields_value['SPECIALOFFERS_BANNER_DATE_START'] = $commonData['date_start']; 
+        $helper->fields_value['SPECIALOFFERS_BANNER_DATE_END'] = $commonData['date_end']; 
+        $helper->fields_value['SPECIALOFFERS_BANNER_ID_DISPLAY'] = $commonData['id_banner']; 
+        $helper->fields_value['SPECIALOFFERS_BANNER_GROUP_ID'] = $commonData['id_group']; 
+        $helper->fields_value['SPECIALOFFERS_BANNER_GROUP_ID_DISPLAY'] = $commonData['id_group'];
+        
+        foreach ($languages as $lang) {
+            $id_lang = (int)$lang['id_lang'];
+            $text = '';
+
+            if ($bannerEdit) {
+                foreach ($bannerEdit as $row) {
+                    if ($row['id_lang'] == $id_lang) {
+                        $text = $row['text'];
+                    }
+                }
+            }
+            $helper->fields_value['SPECIALOFFERS_BANNER_TEXT'][$id_lang] = $text;
+        }
+
+        $helper->default_form_language = $default_lang;
+		$helper->allow_employee_form_lang = $default_lang;
+		$helper->languages = $this->context->controller->getLanguages();
 
         return $helper->generateForm([$form]);
 
@@ -341,10 +415,14 @@ class SpecialOffers extends Module
     public function getBanners($onlyEnabled = false)
     {
         $dateNow = date('Y-m-d'); //current date
+        $id_lang = (int)$this->context->language->id;
+        
+        
         $sql = 'SELECT * FROM `'._DB_PREFIX_.'specialoffers_banners`';
 
+
         if($onlyEnabled){
-            $sql .= ' WHERE enabled=1
+            $sql .= ' WHERE id_lang='.(int)$id_lang.' AND enabled=1
                     AND (date_start IS NULL OR date_start="0000-00-00" OR date_start <= "'.$dateNow.'")
                     AND (date_end IS NULL OR date_end="0000-00-00" OR date_end >= "'.$dateNow.'")';}
 
