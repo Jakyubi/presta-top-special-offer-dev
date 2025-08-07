@@ -182,8 +182,15 @@ class SpecialOffers extends Module
             Configuration::updateValue('SPECIALOFFERS_BANNER_BG_COLOR', $bgColor);
         }
 
+        if(Tools::isSubmit('cancelSettingsForm')){
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => $this->name,
+                'tab' => 'settings',
+            ]));
+        }
+
+
         $bannerEdit = null;
-        
         if(Tools::isSubmit('editBanner')){
             $idGroup = (int)Tools::getValue('editBanner');
 
@@ -200,17 +207,99 @@ class SpecialOffers extends Module
         $active_tab = Tools::isSubmit('submitStyleForm') ? 'style' : 'settings';
         $banners = $this->getBanners(false);
 
+        $show_form = Tools::isSubmit('editBanner') || Tools::isSubmit('showAddForm');
+
         $this->context->smarty->assign([
             'active_tab' => $active_tab,
             'banner_edit' => $bannerEdit,
             'banners' => $banners,
             'form_settings' => $this->displaySettingsForm($bannerEdit),
             'form_style' => $this->displayStyleForm(),
+            'show_form' => $show_form,
             'link' => $this->context->link,
             'module' => $this,
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
+
+    }
+
+    public function displayListForm($bannerEdit=null){
+        
+        $commonData = [
+            'enabled' => 1,
+            'id_banner' => '',
+            'id_group' => '',
+            'date_start' => '',
+            'date_end' => ''
+        ];
+
+        if($bannerEdit) {
+            $firstRow = $bannerEdit[0];
+            $commonData['enabled'] = $firstRow['enabled'];
+            $commonData['id_banner'] = $firstRow['id_banner'];
+            $commonData['id_group'] = $firstRow['id_group'];
+            $commonData['date_start'] = $firstRow['date_start'];
+            $commonData['date_end'] = $firstRow['date_end'];
+        }
+
+        $form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->l('Settings'),
+                ],
+                'input' => [
+                    [ // display banner id during edit
+                        'type' => 'text',
+                        'label' => $this->l('Banner ID'),
+                        'name' => 'SPECIALOFFERS_BANNER_ID_DISPLAY',
+                        'readonly' => true,
+                    ],
+                    [ // text input
+                        'type' => 'text',
+                        'label' => $this->l('Text to display'),
+                        'name' => 'SPECIALOFFERS_BANNER_TEXT',
+                        'autoload_rte' => false,
+                        'rows' => 10,
+                        'cols' => 50,
+                        'lang' => true,
+                    ],
+                    [ // start date
+                        'type' => 'date',
+                        'label' => $this->l('Start date'),
+                        'name' => 'SPECIALOFFERS_BANNER_DATE_START',
+                        
+                    ],
+                    [ // end date
+                        'type' => 'date',
+                        'label' => $this->l('End date'),
+                        'name' => 'SPECIALOFFERS_BANNER_DATE_END'
+                    ],
+                    [ // banner on/off
+                        'type' => 'switch',
+                        'label' => $this->l('Enable banner'),
+                        'name' => 'SPECIALOFFERS_BANNER_ENABLE',
+                        'is_bool' => true,
+                        'values' => [
+                            [
+                                'id' => 'banner_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ],
+                            [
+                                'id' => 'banner_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            ],
+                        ],
+                    ],  
+
+
+
+                ],
+            ],
+        ];
+
 
     }
 
@@ -318,6 +407,16 @@ class SpecialOffers extends Module
                 'submit' => [
                     'title' => $this->l('Save'),
                     'class' => 'btn btn-default pull-right',
+                    'name' => 'submitSettingsForm',
+                ],
+                'buttons' => [
+                    [
+                        'title' => $this->l('Cancel'),
+                        'name' => 'cancelSettingsForm',
+                        'class' => 'btn btn-default pull-right',
+                        'type' => 'submit',
+                        'onclick' => 'return true',
+                    ],
                 ],
             ],
         ];
