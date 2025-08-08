@@ -18,7 +18,6 @@ class SpecialOffers extends Module
             'max' => _PS_VERSION_,
         ];
         $this->bootstrap = true;
-    //     $this->is_configurable = 1;
 
         parent::__construct();
 
@@ -117,7 +116,6 @@ class SpecialOffers extends Module
         return $this->display(__FILE__, 'views/templates/hook/displayFrontBanner.tpl');
     }
     
-    
     public function getContent()
     {
 
@@ -149,7 +147,7 @@ class SpecialOffers extends Module
                 if(!empty(trim($text))){
                     if($existing){
                         Db::getInstance()->update('specialoffers_banners', [ //update banner
-                            'text' => pSQL($text),
+                            'text' => $text,
                             'enabled' => (int)$bannerEnabled,
                             'date_start' => pSQL($dateStart),
                             'date_end' => pSQL($dateEnd),
@@ -158,7 +156,7 @@ class SpecialOffers extends Module
                         Db::getInstance()->insert('specialoffers_banners', [ //insert new banner
                             'id_group' => $bannerGroupId,
                             'id_lang' => $id_lang,                            
-                            'text' => pSQL($text),
+                            'text' => $text,
                             'enabled' => (int)$bannerEnabled,
                             'date_start' => pSQL($dateStart),
                             'date_end' => pSQL($dateEnd),
@@ -266,6 +264,12 @@ class SpecialOffers extends Module
             'href' => AdminController::$currentIndex.'&configure='.$this->name.'&showAddForm=1&token='.Tools::getAdminTokenLite('AdminModules'),
             'desc' => $this->l('Add New Banner'),
         ];
+
+        foreach($banners as &$banner){
+            $banner['text'] = strip_tags($banner['text']);
+        }
+        unset($banner);
+
         return $helper->generateList($banners, $fields_list);
     }
 
@@ -334,10 +338,10 @@ class SpecialOffers extends Module
                         ],
                     ],
                     [ // text input
-                        'type' => 'text',
+                        'type' => 'textarea',
                         'label' => $this->l('Text to display'),
                         'name' => 'SPECIALOFFERS_BANNER_TEXT',
-                        'autoload_rte' => false,
+                        'autoload_rte' => true,
                         'rows' => 10,
                         'cols' => 50,
                         'lang' => true,
@@ -423,6 +427,7 @@ class SpecialOffers extends Module
         return $helper->generateForm([$form]);
 
     }
+
     public function displayStyleForm()
     {
         $form = [
