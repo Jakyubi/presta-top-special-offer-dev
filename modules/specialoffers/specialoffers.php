@@ -18,7 +18,7 @@ class SpecialOffers extends Module
             'max' => _PS_VERSION_,
         ];
         $this->bootstrap = true;
-        $this->is_configurable = 1;
+    //     $this->is_configurable = 1;
 
         parent::__construct();
 
@@ -120,8 +120,6 @@ class SpecialOffers extends Module
     
     public function getContent()
     {
-        $languages = Language::getLanguages();
-        $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
         if(Tools::isSubmit('submitSettingsForm')){ //take data from settings form
             $enabled = Tools::getValue('SPECIALOFFERS_MODULE_ENABLE');
@@ -129,7 +127,9 @@ class SpecialOffers extends Module
             $dateStart = Tools::getValue('SPECIALOFFERS_BANNER_DATE_START');   //sets start/end date from form
             $dateEnd = Tools::getValue('SPECIALOFFERS_BANNER_DATE_END');       //sets null to 0000-00-00
             $bannerGroupId = (int)Tools::getValue('SPECIALOFFERS_BANNER_GROUP_ID');
-            
+            $languages = Language::getLanguages();
+            $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
+
             Configuration::updateValue('SPECIALOFFERS_MODULE_ENABLE', $enabled);
 
             if(!$bannerGroupId){
@@ -191,116 +191,82 @@ class SpecialOffers extends Module
 
 
         $bannerEdit = null;
-        if(Tools::isSubmit('editBanner')){
-            $idGroup = (int)Tools::getValue('editBanner');
+        if(Tools::isSubmit('updatespecialoffers_banners')){
+            $idGroup = (int)Tools::getValue('id_group');
 
             $bannerEdit = Db::getInstance()->executeS('
             SELECT * FROM '._DB_PREFIX_.'specialoffers_banners 
             WHERE id_group = '.(int)$idGroup);
         }
         
-        if(Tools::isSubmit('deleteBanner')){
-            $idGroup = (int)Tools::getValue('deleteBanner');
-            Db::getInstance()->delete('specialoffers_banners', 'id_group='.(int)$idGroup);
+        if(Tools::isSubmit('deletespecialoffers_banners')){
+            $idGroup = (int)Tools::getValue('id_group');
+            Db::getInstance()->delete('specialoffers_banners', 'id_group = ' . $idGroup);
         }
         
         $active_tab = Tools::isSubmit('submitStyleForm') ? 'style' : 'settings';
-        $banners = $this->getBanners(false);
 
-        $show_form = Tools::isSubmit('editBanner') || Tools::isSubmit('showAddForm');
+        $show_form = Tools::isSubmit('updatespecialoffers_banners') || Tools::isSubmit('showAddForm');
 
+        $list = $this->displayListForm();
         $this->context->smarty->assign([
             'active_tab' => $active_tab,
-            'banner_edit' => $bannerEdit,
-            'banners' => $banners,
             'form_settings' => $this->displaySettingsForm($bannerEdit),
             'form_style' => $this->displayStyleForm(),
             'show_form' => $show_form,
-            'link' => $this->context->link,
-            'module' => $this,
+            'list_banners' => $list,
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
 
     }
 
-    public function displayListForm($bannerEdit=null){
+    public function displayListForm()
+    {
         
-        $commonData = [
-            'enabled' => 1,
-            'id_banner' => '',
-            'id_group' => '',
-            'date_start' => '',
-            'date_end' => ''
-        ];
-
-        if($bannerEdit) {
-            $firstRow = $bannerEdit[0];
-            $commonData['enabled'] = $firstRow['enabled'];
-            $commonData['id_banner'] = $firstRow['id_banner'];
-            $commonData['id_group'] = $firstRow['id_group'];
-            $commonData['date_start'] = $firstRow['date_start'];
-            $commonData['date_end'] = $firstRow['date_end'];
-        }
-
-        $form = [
-            'form' => [
-                'legend' => [
-                    'title' => $this->l('Settings'),
-                ],
-                'input' => [
-                    [ // display banner id during edit
-                        'type' => 'text',
-                        'label' => $this->l('Banner ID'),
-                        'name' => 'SPECIALOFFERS_BANNER_ID_DISPLAY',
-                        'readonly' => true,
-                    ],
-                    [ // text input
-                        'type' => 'text',
-                        'label' => $this->l('Text to display'),
-                        'name' => 'SPECIALOFFERS_BANNER_TEXT',
-                        'autoload_rte' => false,
-                        'rows' => 10,
-                        'cols' => 50,
-                        'lang' => true,
-                    ],
-                    [ // start date
-                        'type' => 'date',
-                        'label' => $this->l('Start date'),
-                        'name' => 'SPECIALOFFERS_BANNER_DATE_START',
-                        
-                    ],
-                    [ // end date
-                        'type' => 'date',
-                        'label' => $this->l('End date'),
-                        'name' => 'SPECIALOFFERS_BANNER_DATE_END'
-                    ],
-                    [ // banner on/off
-                        'type' => 'switch',
-                        'label' => $this->l('Enable banner'),
-                        'name' => 'SPECIALOFFERS_BANNER_ENABLE',
-                        'is_bool' => true,
-                        'values' => [
-                            [
-                                'id' => 'banner_on',
-                                'value' => 1,
-                                'label' => $this->l('Enabled')
-                            ],
-                            [
-                                'id' => 'banner_off',
-                                'value' => 0,
-                                'label' => $this->l('Disabled')
-                            ],
-                        ],
-                    ],  
-
-
-
-                ],
+        $fields_list = [
+            'id_banner' =>[
+                'title' => $this->l('ID'),
+                'type' => 'text',
+            ],
+            'id_group' => [
+                'title' => $this->l('Group ID'),
+                'type' => 'text',
+            ],
+            'id_lang' => [
+                'title' => $this->l('Lang ID'),
+                'type' => 'text',
+            ],
+            'text' => [
+                'title' => $this->l('Text'),
+                'type' => 'text',
+            ],
+            'date_start' => [
+                'title' => $this->l('Start date'),
+                'type' => 'date',
+            ],
+            'date_end' => [
+                'title' => $this->l('End date'),
+                'type' => 'date',
+            ],
+            'enabled' => [
+                'title' => $this->l('Enabled'),
+                'type' => 'bool',
             ],
         ];
 
+        $banners = $this->getBanners(false);
 
+        $helper = $this->getHelperList();
+        $helper->title = $this->l('Banner list');
+        $helper->identifier = 'id_group';
+        $helper->table = 'specialoffers_banners';
+        $helper->actions = ['edit', 'delete'];
+        $helper->toolbar_btn['new'] = [
+            'href' => AdminController::$currentIndex.'&configure='.$this->name.'&showAddForm=1&token='.Tools::getAdminTokenLite('AdminModules'),
+            'desc' => $this->l('Add New Banner'),
+        ];
+        return $helper->generateList($banners, $fields_list);
     }
 
     public function displaySettingsForm($bannerEdit = null)
@@ -423,7 +389,7 @@ class SpecialOffers extends Module
 
         $languages = Language::getLanguages();
 
-        $helper = $this->getHelper();
+        $helper = $this->getHelperForm();
         $helper->submit_action = 'submitSettingsForm';
         
         $helper->fields_value['SPECIALOFFERS_MODULE_ENABLE'] = 
@@ -457,7 +423,6 @@ class SpecialOffers extends Module
         return $helper->generateForm([$form]);
 
     }
-
     public function displayStyleForm()
     {
         $form = [
@@ -485,7 +450,7 @@ class SpecialOffers extends Module
 
         ];
 
-        $helper = $this->getHelper();
+        $helper = $this->getHelperForm();
         $helper->submit_action = 'submitStyleForm';
 
         $helper->fields_value['SPECIALOFFERS_BANNER_TEXT_COLOR'] =
@@ -497,7 +462,7 @@ class SpecialOffers extends Module
         return $helper->generateForm([$form]);
     }
 
-    public function getHelper()
+    public function getHelperForm()
     {
         $helper = new HelperForm();
         $helper->module = $this;
@@ -508,6 +473,16 @@ class SpecialOffers extends Module
         $helper->submit_action = 'submit' . $this->name;
         $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
         
+        return $helper;
+    }
+
+    public function getHelperList(){
+        $helper = new HelperList();
+        $helper->module = $this;
+        $helper->show_toolbar = false;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+
         return $helper;
     }
 
