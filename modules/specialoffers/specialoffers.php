@@ -50,8 +50,8 @@ class SpecialOffers extends Module
             `id_lang` int(11) NOT NULL,
             `text` TEXT,
             `enabled` TINYINT(1) DEFAULT 1,
-            `date_start` DATE DEFAULT NULL,
-            `date_end` DATE DEFAULT NULL,
+            `date_start` DATETIME DEFAULT NULL,
+            `date_end` DATETIME DEFAULT NULL,
             PRIMARY KEY (`id_banner`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
@@ -75,7 +75,6 @@ class SpecialOffers extends Module
 
     public function hookActionFrontControllerSetMedia($params)
     {
-        if($this->context->controller->php_self === 'index'){
 
             $this->context->controller->registerStylesheet(
                 'splide-css',
@@ -94,7 +93,6 @@ class SpecialOffers extends Module
                 'modules/'.$this->name.'/resources/scripts/splide-init.js',
                 ['priority' => 160]
             );
-        }
         
     }
 
@@ -241,11 +239,11 @@ class SpecialOffers extends Module
             ],
             'date_start' => [
                 'title' => $this->l('Start date'),
-                'type' => 'date',
+                'type' => 'datetime',
             ],
             'date_end' => [
                 'title' => $this->l('End date'),
-                'type' => 'date',
+                'type' => 'datetime',
             ],
             'enabled' => [
                 'title' => $this->l('Enabled'),
@@ -363,13 +361,13 @@ class SpecialOffers extends Module
                         'name' => 'SPECIALOFFERS_BANNER_GROUP_ID_DISPLAY',
                     ],
                     [ // start date
-                        'type' => 'date',
+                        'type' => 'datetime',
                         'label' => $this->l('Start date'),
                         'name' => 'SPECIALOFFERS_BANNER_DATE_START',
                         
                     ],
                     [ // end date
-                        'type' => 'date',
+                        'type' => 'datetime',
                         'label' => $this->l('End date'),
                         'name' => 'SPECIALOFFERS_BANNER_DATE_END'
                     ],
@@ -493,7 +491,7 @@ class SpecialOffers extends Module
 
     public function getBanners($onlyEnabled = false)
     {
-        $dateNow = date('Y-m-d'); //current date
+        $dateNow = date('Y-m-d H:i:s'); //current date
         $id_lang = (int)$this->context->language->id;
         
         
@@ -502,8 +500,8 @@ class SpecialOffers extends Module
 
         if($onlyEnabled){
             $sql .= ' WHERE id_lang='.(int)$id_lang.' AND enabled=1
-                    AND (date_start IS NULL OR date_start="0000-00-00" OR date_start <= "'.$dateNow.'")
-                    AND (date_end IS NULL OR date_end="0000-00-00" OR date_end >= "'.$dateNow.'")';}
+                    AND (date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.$dateNow.'")
+                    AND (date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.$dateNow.'")';}
 
         return Db::getInstance()->executeS($sql);
     }
