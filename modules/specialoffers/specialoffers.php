@@ -131,13 +131,13 @@ class SpecialOffers extends Module
     
     public function getContent()
     {
-
-        
         if(Tools::isSubmit('submitSettingsForm')){ //take data from settings form
-            $enabled = Tools::getValue('SPECIALOFFERS_MODULE_ENABLE');
-            $bannerEnabled = Tools::getValue('SPECIALOFFERS_BANNER_ENABLE');
+            $enabled = (int)Tools::getValue('SPECIALOFFERS_MODULE_ENABLE', 0);
+            $bannerEnabled = (int)Tools::getValue('SPECIALOFFERS_BANNER_ENABLE', 0);
+
             $dateStart = Tools::getValue('SPECIALOFFERS_BANNER_DATE_START');   //sets start/end date from form
-            $dateEnd = Tools::getValue('SPECIALOFFERS_BANNER_DATE_END');       //sets null to 0000-00-00
+            $dateEnd = Tools::getValue('SPECIALOFFERS_BANNER_DATE_END');       //
+            
             $bannerGroupId = (int)Tools::getValue('SPECIALOFFERS_BANNER_GROUP_ID');
             $languages = Language::getLanguages();
 
