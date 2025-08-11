@@ -204,7 +204,7 @@ class FormManager
     }
 
 
-        public function displayListForm()
+    public function displayListForm()
     {
         
         $fields_list = [
@@ -274,7 +274,8 @@ class FormManager
         return $helper;
     }
 
-    public function getHelperList(){
+    public function getHelperList()
+    {
         $helper = new HelperList();
         $helper->module = $this->module;
         $helper->show_toolbar = false;

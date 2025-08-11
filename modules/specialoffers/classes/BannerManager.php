@@ -5,13 +5,16 @@ class BannerManager
     public function getBanners($id_lang = null, $onlyEnabled=false)
     {
 
-        $dateNow = date('Y-m-d H:i:s'); //current date
-        $sql = 'SELECT * FROM `'._DB_PREFIX_.'specialoffers_banners`';
+        $dateNow = date('Y-m-d H:i:s');
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from('specialoffers_banners');
 
         if($onlyEnabled){
-            $sql .= ' WHERE id_lang='.(int)$id_lang.' AND enabled=1
-                    AND (date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.$dateNow.'")
-                    AND (date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.$dateNow.'")';
+            $sql->where('id_lang = ' . (int)$id_lang);
+            $sql->where('enabled = 1');
+            $sql->where('(date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.pSQL($dateNow).'")');
+            $sql->where('(date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.pSQL($dateNow).'")');
         }
 
         return Db::getInstance()->executeS($sql);
@@ -20,9 +23,12 @@ class BannerManager
 
     public function getBannersByGroup($idGroup)
     {
-        return Db::getInstance()->executeS('
-            SELECT * FROM '._DB_PREFIX_.'specialoffers_banners 
-            WHERE id_group = '.(int)$idGroup);
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from('specialoffers_banners');
+        $sql->where('id_group = '.(int)$idGroup);
+
+        return Db::getInstance()->executeS($sql);
     }
 
     public function addBanner($bannerData)
@@ -49,9 +55,12 @@ class BannerManager
 
     public function saveBanner($bannerData)
     {
-        $exists = Db::getInstance()->getValue('
-            SELECT COUNT(*) FROM '._DB_PREFIX_.'specialoffers_banners
-            WHERE id_group = '.(int)$bannerData['id_group'].' AND id_lang = '.(int)$bannerData['id_lang']);
+        $sql = new DbQuery();
+        $sql->select('COUNT(*)');
+        $sql->from('specialoffers_banners');
+        $sql->where('id_group = '.(int)$bannerData['id_group']. ' AND id_lang = '.(int)$bannerData['id_lang']);
+
+        $exists = Db::getInstance()->getValue($sql);
 
         if($exists){
             return $this->updateBanner($bannerData);

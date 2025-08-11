@@ -144,8 +144,10 @@ class SpecialOffers extends Module
             Configuration::updateValue('SPECIALOFFERS_MODULE_ENABLE', $enabled);
 
             if(!$bannerGroupId){
-                $bannerGroupId = (int) Db::getInstance()->getValue(
-                    'SELECT MAX(id_group) FROM '._DB_PREFIX_.'specialoffers_banners') +1;
+                $sql = new DbQuery();
+                $sql->select('MAX(id_group)');
+                $sql->from('specialoffers_banners');
+                $bannerGroupId = (int) Db::getInstance()->getValue($sql) +1;
             }
 
             foreach ($languages as $lang){
@@ -228,5 +230,4 @@ class SpecialOffers extends Module
         return $this->name;
     }
 
-    }
 }
