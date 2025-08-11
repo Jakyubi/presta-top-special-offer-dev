@@ -3,9 +3,17 @@ if(!defined('_PS_VERSION_')){
     exit;
 }
 
+require_once __DIR__.'/classes/bannerManager.php';
+
+
+
 class SpecialOffers extends Module
 { 
 
+
+    public $bannerManager;
+
+    
     public function __construct()
     {
         $this->name = 'specialoffers';
@@ -28,6 +36,8 @@ class SpecialOffers extends Module
         if(!Configuration::get('SPECIALOFFERS_MODULE_NAME')){
             $this->warning = $this->trans('No name provided', [], 'Modules.Specialoffers.Admin');
         }
+
+        $this->bannerManager = new bannerManager();
     }
 
     public function install()
@@ -103,7 +113,8 @@ class SpecialOffers extends Module
             return '';
         }
 
-        $banners = $this->getBanners(true);
+        $id_lang = (int)$this->context->language->id;
+        $banners = $this->bannerManager->getBanners($id_lang, true);
 
         $this->context->smarty->assign([
             'specialoffers_banner_text_color' => Configuration::get('SPECIALOFFERS_BANNER_TEXT_COLOR'),
@@ -117,6 +128,7 @@ class SpecialOffers extends Module
     public function getContent()
     {
 
+        
         if(Tools::isSubmit('submitSettingsForm')){ //take data from settings form
             $enabled = Tools::getValue('SPECIALOFFERS_MODULE_ENABLE');
             $bannerEnabled = Tools::getValue('SPECIALOFFERS_BANNER_ENABLE');
@@ -124,7 +136,6 @@ class SpecialOffers extends Module
             $dateEnd = Tools::getValue('SPECIALOFFERS_BANNER_DATE_END');       //sets null to 0000-00-00
             $bannerGroupId = (int)Tools::getValue('SPECIALOFFERS_BANNER_GROUP_ID');
             $languages = Language::getLanguages();
-            $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
             Configuration::updateValue('SPECIALOFFERS_MODULE_ENABLE', $enabled);
 
@@ -137,33 +148,17 @@ class SpecialOffers extends Module
                 $id_lang = (int)$lang['id_lang'];
                 $text = Tools::getValue('SPECIALOFFERS_BANNER_TEXT_'.$id_lang);
 
-                $existing = Db::getInstance()->getValue(
-                    'SELECT COUNT(*) FROM '._DB_PREFIX_.'specialoffers_banners
-                    WHERE id_group = '.(int)$bannerGroupId.' AND id_lang = '.(int)$id_lang
-                );
-
                 if(!empty(trim($text))){
-                    if($existing){
-                        Db::getInstance()->update('specialoffers_banners', [ //update banner
-                            'text' => $text,
-                            'enabled' => (int)$bannerEnabled,
-                            'date_start' => pSQL($dateStart),
-                            'date_end' => pSQL($dateEnd),
-                        ], 'id_group = ' . $bannerGroupId.' AND id_lang = '.(int)$id_lang);
-                    }else{
-                        Db::getInstance()->insert('specialoffers_banners', [ //insert new banner
-                            'id_group' => $bannerGroupId,
-                            'id_lang' => $id_lang,                            
-                            'text' => $text,
-                            'enabled' => (int)$bannerEnabled,
-                            'date_start' => pSQL($dateStart),
-                            'date_end' => pSQL($dateEnd),
-                        ]);   
-                    }
+                    $this->bannerManager->saveBanner([
+                        'id_group' => $bannerGroupId,
+                        'id_lang' => $id_lang,
+                        'text' => $text,
+                        'enabled' => $bannerEnabled,
+                        'date_start' => $dateStart,
+                        'date_end' => $dateEnd,
+                    ]);
                 }
             }
-
-
 
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => $this->name
@@ -189,15 +184,12 @@ class SpecialOffers extends Module
         $bannerEdit = null;
         if(Tools::isSubmit('updatespecialoffers_banners')){
             $idGroup = (int)Tools::getValue('id_group');
-
-            $bannerEdit = Db::getInstance()->executeS('
-            SELECT * FROM '._DB_PREFIX_.'specialoffers_banners 
-            WHERE id_group = '.(int)$idGroup);
+            $bannerEdit = $this->bannerManager->getBannersByGroup($idGroup);
         }
         
         if(Tools::isSubmit('deletespecialoffers_banners')){
             $idGroup = (int)Tools::getValue('id_group');
-            Db::getInstance()->delete('specialoffers_banners', 'id_group = ' . $idGroup);
+            $this->bannerManager->deleteBanner($idGroup);
         }
         
         $active_tab = Tools::isSubmit('submitStyleForm') ? 'style' : 'settings';
@@ -212,9 +204,9 @@ class SpecialOffers extends Module
             'show_form' => $show_form,
             'list_banners' => $list,
         ]);
-
+        
         return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
-
+                
     }
 
     public function displayListForm()
@@ -251,7 +243,7 @@ class SpecialOffers extends Module
             ],
         ];
 
-        $banners = $this->getBanners(false);
+        $banners = $this->bannerManager->getBanners(false);
 
         $helper = $this->getHelperList();
         $helper->title = $this->l('Banner list');
@@ -488,22 +480,4 @@ class SpecialOffers extends Module
 
         return $helper;
     }
-
-    public function getBanners($onlyEnabled = false)
-    {
-        $dateNow = date('Y-m-d H:i:s'); //current date
-        $id_lang = (int)$this->context->language->id;
-        
-        
-        $sql = 'SELECT * FROM `'._DB_PREFIX_.'specialoffers_banners`';
-
-
-        if($onlyEnabled){
-            $sql .= ' WHERE id_lang='.(int)$id_lang.' AND enabled=1
-                    AND (date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.$dateNow.'")
-                    AND (date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.$dateNow.'")';}
-
-        return Db::getInstance()->executeS($sql);
-    }
-
 }
