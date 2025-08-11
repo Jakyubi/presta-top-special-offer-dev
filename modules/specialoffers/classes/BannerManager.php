@@ -11,10 +11,11 @@ class BannerManager
         $sql->from('specialoffers_banners');
 
         if($onlyEnabled){
-            $sql->where('id_lang = ' . (int)$id_lang);
-            $sql->where('enabled = 1');
-            $sql->where('(date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.pSQL($dateNow).'")');
-            $sql->where('(date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.pSQL($dateNow).'")');
+            $sql->where(
+            'id_lang = ' . (int)$id_lang .
+            ' AND enabled = 1 ' .
+            ' AND (date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.pSQL($dateNow).'") .
+            ' AND (date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.pSQL($dateNow).'")');
         }
 
         return Db::getInstance()->executeS($sql);
