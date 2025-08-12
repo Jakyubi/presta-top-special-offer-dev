@@ -93,6 +93,7 @@ class BannerManager
             'id_group' => (int)$bannerData['id_group'],
             'id_lang' => (int)$bannerData['id_lang'],
             'text' => $bannerData['text'],
+            'link' => $bannerData['link'],
             'enabled' => (int)$bannerData['enabled'],
             'date_start' => $bannerData['date_start'],
             'date_end' => $bannerData['date_end'],
@@ -103,6 +104,7 @@ class BannerManager
     {
         return Db::getInstance()->update('specialoffers_banners', [
             'text' => $bannerData['text'],
+            'link' => $bannerData['link'],
             'enabled' => (int)$bannerData['enabled'],
             'date_start' => $bannerData['date_start'],
             'date_end' => $bannerData['date_end'],

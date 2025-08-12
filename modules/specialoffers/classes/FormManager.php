@@ -82,6 +82,11 @@ class FormManager
                         'cols' => 50,
                         'lang' => true,
                     ],
+                    [ // URL address
+                        'type' => 'text',
+                        'label' => $this->module->l('URL address'),
+                        'name' => 'SPECIALOFFERS_BANNER_LINK',
+                    ],
                     [ // display banner id during edit
                         'type' => 'text',
                         'label' => $this->module->l('Banner ID'),
@@ -135,6 +140,7 @@ class FormManager
         $helper->fields_value['SPECIALOFFERS_MODULE_ENABLE'] = 
         Tools::getValue('SPECIALOFFERS_MODULE_ENABLE', Configuration::get('SPECIALOFFERS_MODULE_ENABLE'));
 
+        $helper->fields_value['SPECIALOFFERS_BANNER_LINK'] = $bannerEdit ? $bannerEdit[0]['link'] : '';
         $helper->fields_value['SPECIALOFFERS_BANNER_ENABLE'] = $commonData['enabled']; 
         $helper->fields_value['SPECIALOFFERS_BANNER_DATE_START'] = $commonData['date_start']; 
         $helper->fields_value['SPECIALOFFERS_BANNER_DATE_END'] = $commonData['date_end']; 

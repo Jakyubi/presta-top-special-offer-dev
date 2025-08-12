@@ -16,7 +16,13 @@
             {foreach $banners as $banner}
             <li class="splide__slide">
                 <div class="special-offer-item">
+                {if $banner.link|trim}
+                    <a href="{$banner.link|escape:'html' : 'UTF-8'}">
+                        {$banner.text nofilter}
+                    </a>
+                {else}
                     {$banner.text nofilter}
+                {/if}
                 </div>
             </li>
             {/foreach}

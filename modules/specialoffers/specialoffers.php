@@ -63,6 +63,7 @@ class SpecialOffers extends Module
             `id_group` int(11) NOT NULL,
             `id_lang` int(11) NOT NULL,
             `text` TEXT,
+            `link` VARCHAR(255) DEFAULT NULL,
             `enabled` TINYINT(1) DEFAULT 1,
             `date_start` DATETIME DEFAULT NULL,
             `date_end` DATETIME DEFAULT NULL,
@@ -153,12 +154,14 @@ class SpecialOffers extends Module
             foreach ($languages as $lang){
                 $id_lang = (int)$lang['id_lang'];
                 $text = Tools::getValue('SPECIALOFFERS_BANNER_TEXT_'.$id_lang);
+                $link = Tools::getValue('SPECIALOFFERS_BANNER_LINK');
 
                 if(!empty(trim($text))){
                     $this->bannerManager->saveBanner([
                         'id_group' => $bannerGroupId,
                         'id_lang' => $id_lang,
                         'text' => $text,
+                        'link' => $link,
                         'enabled' => $bannerEnabled,
                         'date_start' => $dateStart,
                         'date_end' => $dateEnd,
