@@ -5,36 +5,53 @@
 class BannerManager
 {
    public function getBanners($id_lang = null, $onlyEnabled=false, $sort = 'id_group', $order='ASC')
-{
-    $dateNow = date('Y-m-d H:i:s');
-    $sql = new DbQuery();
-    $sql->select('*');
-    $sql->from('specialoffers_banners');
+    {
+        $dateNow = date('Y-m-d H:i:s');
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from('specialoffers_banners');
 
 
-    if($onlyEnabled){
-        $sql->where('id_lang = ' . (int)$id_lang);
-        $sql->where('enabled = 1');
-        $sql->where('(date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.pSQL($dateNow).'")');
-        $sql->where('(date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.pSQL($dateNow).'")');
+        if($onlyEnabled){
+            $sql->where('id_lang = ' . (int)$id_lang);
+            $sql->where('enabled = 1');
+            $sql->where('(date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.pSQL($dateNow).'")');
+            $sql->where('(date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.pSQL($dateNow).'")');
+        }
+
+
+        $allowedSortFields = ['id_banner', 'id_group', 'id_lang', 'date_start', 'date_end', 'enabled'];
+        if(!in_array($sort, $allowedSortFields)){
+            $sort = 'id_group';
+        }
+
+        $order = strtoupper($order);
+        if(!in_array($order, ['ASC', 'DESC'])){
+            $order = 'ASC';
+        }
+
+        $sql->orderBy($sort . ' ' . $order);
+
+        return Db::getInstance()->executeS($sql);
     }
 
+    public function countBanners($id_lang = null, $onlyEnabled = false)
+    {
+        $dateNow = date('Y-m-d H:i:s');
+        $sql = new DbQuery();
+        $sql->select('COUNT(*)');
+        $sql->from('specialoffers_banners');
 
-    $allowedSortFields = ['id_banner', 'id_group', 'id_lang', 'date_start', 'date_end', 'enabled'];
-    if(!in_array($sort, $allowedSortFields)){
-        $sort = 'id_group';
+        if($onlyEnabled){
+            $sql->where('id_lang = ' . (int)$id_lang);
+            $sql->where('enabled = 1');
+            $sql->where('(date_start IS NULL OR date_start="0000-00-00 00:00:00" OR date_start <= "'.pSQL($dateNow).'")');
+            $sql->where('(date_end IS NULL OR date_end="0000-00-00 00:00:00" OR date_end >= "'.pSQL($dateNow).'")');
+        }
+
+        return (int)Db::getInstance()->getValue($sql);
+
     }
-
-    $order = strtoupper($order);
-    if(!in_array($order, ['ASC', 'DESC'])){
-        $order = 'ASC';
-    }
-
-    $sql->orderBy($sort . ' ' . $order);
-
-    return Db::getInstance()->executeS($sql);
-}
-
 
     public function getBannersByGroup($idGroup)
     {

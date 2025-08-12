@@ -244,12 +244,14 @@ class FormManager
 
         $id_lang = $this->module->getContext()->language->id;
         $banners = $this->module->bannerManager->getBanners($id_lang, false, $sort, $order);
+        $totalBanners = $this->module->bannerManager->countBanners($id_lang, false);
 
         $helper = $this->getHelperList();
         $helper->title = $this->module->l('Banner list');
         $helper->identifier = 'id_group';
         $helper->table = 'specialoffers_banners';
         $helper->actions = ['edit', 'delete'];
+        $helper->listTotal = $totalBanners;
         $helper->toolbar_btn['new'] = [
             'href' => AdminController::$currentIndex.'&configure='.$this->module->getName().'&showAddForm=1&token='.Tools::getAdminTokenLite('AdminModules'),
             'desc' => $this->module->l('Add New Banner'),
