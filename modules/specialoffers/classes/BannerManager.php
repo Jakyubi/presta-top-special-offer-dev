@@ -4,7 +4,7 @@
 
 class BannerManager
 {
-   public function getBanners($id_lang = null, $onlyEnabled=false, $sort = 'id_group', $order='ASC')
+   public function getBanners($id_lang = null, $onlyEnabled=false, $sort = 'id_group', $order='ASC', $filters = [])
     {
         $dateNow = date('Y-m-d H:i:s');
         $sql = new DbQuery();
@@ -20,6 +20,31 @@ class BannerManager
         }
 
 
+        foreach($filters as $field => $value){
+            if (empty($value) && !is_numeric($value)) {
+                continue;
+            }
+
+            if (in_array($field, ['id_banner', 'id_group', 'id_lang', 'enabled'])) {
+                $sql->where("$field = " . (int)$value);
+            } elseif (in_array($field, ['text'])) {
+                $sql->where("$field LIKE '%" . pSQL($value) . "%'");
+            } elseif (in_array($field, ['date_start', 'date_end'])) {
+                if (is_array($value)) {
+                    if (!empty($value[0])) {
+                        $sql->where("$field >= '" . pSQL($value[0]) . "'");
+                    }
+                    if (!empty($value[1])) {
+                        $sql->where("$field <= '" . pSQL($value[1]) . "'");
+                    }
+                } else {
+                    $sql->where("$field = '" . pSQL($value) . "'");
+                }
+            }
+        }
+
+
+
         $allowedSortFields = ['id_banner', 'id_group', 'id_lang', 'date_start', 'date_end', 'enabled'];
         if(!in_array($sort, $allowedSortFields)){
             $sort = 'id_group';
@@ -31,7 +56,6 @@ class BannerManager
         }
 
         $sql->orderBy($sort . ' ' . $order);
-
         return Db::getInstance()->executeS($sql);
     }
 

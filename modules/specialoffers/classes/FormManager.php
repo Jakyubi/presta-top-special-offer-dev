@@ -241,9 +241,18 @@ class FormManager
         $sort = Tools::getValue('specialoffers_bannersOrderby', 'id_group');
         $order = Tools::getValue('specialoffers_bannersOrderway', 'ASC');
 
+        $filters = [
+            'id_banner' => Tools::getValue('specialoffers_bannersFilter_id_banner'),
+            'id_group'  => Tools::getValue('specialoffers_bannersFilter_id_group'),
+            'id_lang'   => Tools::getValue('specialoffers_bannersFilter_id_lang'),
+            'text'      => Tools::getValue('specialoffers_bannersFilter_text'),
+            'date_start'=> Tools::getValue('specialoffers_bannersFilter_date_start'),
+            'date_end'  => Tools::getValue('specialoffers_bannersFilter_date_end'),
+            'enabled'   => Tools::getValue('specialoffers_bannersFilter_enabled'),
+        ];
 
         $id_lang = $this->module->getContext()->language->id;
-        $banners = $this->module->bannerManager->getBanners($id_lang, false, $sort, $order);
+        $banners = $this->module->bannerManager->getBanners($id_lang, false, $sort, $order, $filters);
         $totalBanners = $this->module->bannerManager->countBanners($id_lang, false);
 
         $helper = $this->getHelperList();
