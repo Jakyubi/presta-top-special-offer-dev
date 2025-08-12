@@ -249,6 +249,14 @@ class FormManager
         $helper = $this->getHelperList();
         $helper->title = $this->module->l('Banner list');
         $helper->identifier = 'id_group';
+        $helper->bulk_actions = [
+            'delete' =>[
+                'text' => $this->module->l('Delete selected'),
+                'icon' => 'icon-trash',
+                'confirm' => $this->module->l('Delete selected?'),
+            ],
+        ];
+
         $helper->table = 'specialoffers_banners';
         $helper->actions = ['edit', 'delete'];
         $helper->listTotal = $totalBanners;

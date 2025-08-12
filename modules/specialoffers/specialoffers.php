@@ -197,6 +197,21 @@ class SpecialOffers extends Module
             $idGroup = (int)Tools::getValue('id_group');
             $this->bannerManager->deleteBanner($idGroup);
         }
+
+        if(Tools::isSubmit('submitBulkdeletespecialoffers_banners')){
+            $items = Tools::getValue('specialoffers_bannersBox');
+
+            if(is_array($items) && !empty($items)){
+                foreach($items as $idGroup){
+                    $this->bannerManager->deleteBanner((int)$idGroup);
+                }
+            }
+            
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => $this->name,
+            ]));
+
+        }
         
         $active_tab = Tools::isSubmit('submitStyleForm') ? 'style' : 'settings';
 
