@@ -238,7 +238,12 @@ class FormManager
             ],
         ];
 
-        $banners = $this->module->bannerManager->getBanners(false);
+        $sort = Tools::getValue('specialoffers_bannersOrderby', 'id_group');
+        $order = Tools::getValue('specialoffers_bannersOrderway', 'ASC');
+
+
+        $id_lang = $this->module->getContext()->language->id;
+        $banners = $this->module->bannerManager->getBanners($id_lang, false, $sort, $order);
 
         $helper = $this->getHelperList();
         $helper->title = $this->module->l('Banner list');
