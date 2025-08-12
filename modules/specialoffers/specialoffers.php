@@ -121,6 +121,15 @@ class SpecialOffers extends Module
         $id_lang = (int)$this->context->language->id;
         $banners = $this->bannerManager->getBanners($id_lang, true);
 
+        foreach($banners as &$banner){
+            $replacements = [
+                '{date_start}' => $banner['date_start'],
+                '{date_end}' => $banner['date_end'],
+            ];
+            $banner['text'] = strtr($banner['text'], $replacements);
+        }
+        unset($banner);
+
         $this->context->smarty->assign([
             'specialoffers_banner_text_color' => Configuration::get('SPECIALOFFERS_BANNER_TEXT_COLOR'),
             'specialoffers_banner_bg_color' => Configuration::get('SPECIALOFFERS_BANNER_BG_COLOR'),
@@ -209,7 +218,14 @@ class SpecialOffers extends Module
                     $this->bannerManager->deleteBanner((int)$idGroup);
                 }
             }
-            
+
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => $this->name,
+            ]));
+
+        }
+
+        if(Tools::isSubmit('submitResetspecialoffers_banners')){
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => $this->name,
             ]));
