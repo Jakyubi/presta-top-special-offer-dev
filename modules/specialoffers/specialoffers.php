@@ -133,6 +133,9 @@ class SpecialOffers extends Module
         $this->context->smarty->assign([
             'specialoffers_banner_text_color' => Configuration::get('SPECIALOFFERS_BANNER_TEXT_COLOR'),
             'specialoffers_banner_bg_color' => Configuration::get('SPECIALOFFERS_BANNER_BG_COLOR'),
+            'specialoffers_banner_height' => Configuration::get('SPECIALOFFERS_BANNER_HEIGHT'),
+            'specialoffers_banner_width' => Configuration::get('SPECIALOFFERS_BANNER_WIDTH'),
+            'specialoffers_banner_unit' => Configuration::get('SPECIALOFFERS_BANNER_UNIT'),
             'banners' => $banners,
         ]);
 
@@ -186,9 +189,18 @@ class SpecialOffers extends Module
         if(Tools::isSubmit('submitStyleForm')){ //take data from style form
             $textColor = Tools::getValue('SPECIALOFFERS_BANNER_TEXT_COLOR');
             $bgColor = Tools::getValue('SPECIALOFFERS_BANNER_BG_COLOR');
+            $height = Tools::getValue('SPECIALOFFERS_BANNER_HEIGHT') ;
+            $width = Tools::getValue('SPECIALOFFERS_BANNER_WIDTH');
+            $unit = Tools::getValue('SPECIALOFFERS_BANNER_UNIT');
+
 
             Configuration::updateValue('SPECIALOFFERS_BANNER_TEXT_COLOR', $textColor);
             Configuration::updateValue('SPECIALOFFERS_BANNER_BG_COLOR', $bgColor);
+            Configuration::updateValue('SPECIALOFFERS_BANNER_HEIGHT', $height);
+            Configuration::updateValue('SPECIALOFFERS_BANNER_WIDTH', $width);
+            Configuration::updateValue('SPECIALOFFERS_BANNER_UNIT', $unit);
+
+
         }
 
         if(Tools::isSubmit('submitModuleEnableForm')){

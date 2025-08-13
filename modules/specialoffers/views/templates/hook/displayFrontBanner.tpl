@@ -4,10 +4,17 @@
         color: {$specialoffers_banner_text_color|escape:'html':'UTF-8'} !important;
         background-color: {$specialoffers_banner_bg_color|escape:'html':'UTF-8'} !important;
         text-align:center;
+        width: {$specialoffers_banner_width|escape:'html':'UTF-8'}{$specialoffers_banner_unit|escape:'html':'UTF-8'} !important;
+        height: {$specialoffers_banner_height|escape:'html':'UTF-8'}{$specialoffers_banner_unit|escape:'html':'UTF-8'} !important;
     }
     .special-offer-item * {
     color: {$specialoffers_banner_text_color|escape:'html':'UTF-8'} !important;
-}
+    }
+    .splide__slide{
+        display: flex;
+        justify-content: center;
+    }
+
 </style>
 
 <div id="specialoffers-slider" class="splide">

@@ -233,6 +233,29 @@ class FormManager
                         'label' => $this->module->l('Background color'),
                         'name' => 'SPECIALOFFERS_BANNER_BG_COLOR',
                     ],
+                    [ // banner width
+                        'type' => 'text',
+                        'label' => $this->module->l('Banner width'),
+                        'name' => 'SPECIALOFFERS_BANNER_WIDTH',
+                    ],
+                    [ // banner height
+                        'type' => 'text',
+                        'label' => $this->module->l('Banner height'),
+                        'name' => 'SPECIALOFFERS_BANNER_HEIGHT',
+                    ],
+                    [ // height and width unit
+                        'type' => 'select',
+                        'label' => $this->module->l('Choose unit'),
+                        'name' => 'SPECIALOFFERS_BANNER_UNIT',
+                        'options' => [
+                            'query' => [
+                                ['id'=> 'px', 'name'=>'px'],
+                                ['id'=> '%', 'name'=>'%'],
+                            ],
+                            'id' => 'id',
+                            'name' => 'name',
+                        ],
+                    ],
                 ],
                 'submit' => [
                     'title' => $this->module->l('Save'),
@@ -250,6 +273,15 @@ class FormManager
 
         $helper->fields_value['SPECIALOFFERS_BANNER_BG_COLOR'] =
         Tools::getValue('SPECIALOFFERS_BANNER_BG_COLOR', Configuration::get('SPECIALOFFERS_BANNER_BG_COLOR'));
+
+        $helper->fields_value['SPECIALOFFERS_BANNER_HEIGHT'] =
+        Tools::getValue('SPECIALOFFERS_BANNER_HEIGHT', Configuration::get('SPECIALOFFERS_BANNER_HEIGHT'));
+        
+        $helper->fields_value['SPECIALOFFERS_BANNER_WIDTH'] =
+        Tools::getValue('SPECIALOFFERS_BANNER_WIDTH', Configuration::get('SPECIALOFFERS_BANNER_WIDTH'));
+        
+        $helper->fields_value['SPECIALOFFERS_BANNER_UNIT'] =
+        Tools::getValue('SPECIALOFFERS_BANNER_UNIT', Configuration::get('SPECIALOFFERS_BANNER_UNIT'));
 
         return $helper->generateForm([$form]);
     }
