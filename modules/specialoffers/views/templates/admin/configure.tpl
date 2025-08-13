@@ -20,6 +20,7 @@
         {else}
             <!-- banner list -->
             {$list_banners nofilter}
+            {$form_module_enable nofilter}
         {/if}
 
     </div>

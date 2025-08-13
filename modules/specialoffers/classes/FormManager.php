@@ -169,6 +169,51 @@ class FormManager
         return $helper->generateForm([$form]);
     }
 
+    public function displayModuleEnableForm()
+    {
+
+        $form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->module->l('Module on/off'),
+                ],
+                'input' => [
+                    [ // module on/off
+                        'type' => 'switch',
+                        'label' => $this->module->l('Enable module'),
+                        'name' => 'SPECIALOFFERS_MODULE_ENABLE',
+                        'is_bool' => true,
+                        'values' => [
+                            [
+                                'id' => 'active_on',
+                                'value' => 1,
+                                'label' => $this->module->l('Enabled')
+                            ],
+                            [
+                                'id' => 'active_off',
+                                'value' => 0,
+                                'label' => $this->module->l('Disabled')
+                            ]
+                        ],
+                    ],
+              
+                ],
+                'submit' => [
+                    'title' => $this->module->l('Save'),
+                    'class' => 'btn btn-default pull-right',
+                    'name' => 'submitModuleEnableForm',
+                ],
+            ],
+        ];
+
+        $helper = $this->getHelperForm();
+        $helper->submit_action = 'submitModuleEnableForm';
+        
+        $helper->fields_value['SPECIALOFFERS_MODULE_ENABLE'] = 
+        Tools::getValue('SPECIALOFFERS_MODULE_ENABLE', Configuration::get('SPECIALOFFERS_MODULE_ENABLE'));
+
+        return $helper->generateForm([$form]);
+    }
 
     public function displayStyleForm()
     {

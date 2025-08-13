@@ -191,6 +191,11 @@ class SpecialOffers extends Module
             Configuration::updateValue('SPECIALOFFERS_BANNER_BG_COLOR', $bgColor);
         }
 
+        if(Tools::isSubmit('submitModuleEnableForm')){
+            $enabled = (int)Tools::getValue('SPECIALOFFERS_MODULE_ENABLE', 0);
+            Configuration::updateValue('SPECIALOFFERS_MODULE_ENABLE', $enabled);
+        }
+
         if(Tools::isSubmit('cancelSettingsForm')){
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => $this->name,
@@ -241,6 +246,7 @@ class SpecialOffers extends Module
             'active_tab' => $active_tab,
             'form_settings' => $this->formManager->displaySettingsForm($bannerEdit),
             'form_style' => $this->formManager->displayStyleForm(),
+            'form_module_enable' => $this->formManager->displayModuleEnableForm(),
             'show_form' => $show_form,
             'list_banners' => $list,
         ]);
