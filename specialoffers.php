@@ -5,8 +5,8 @@ if(!defined('_PS_VERSION_')){
 
 require_once __DIR__.'/vendor/autoload.php';
 
-use SpecialoffersModule\BannerManager;
-use SpecialoffersModule\FormManager;
+use SpecialOffersModule\BannerManager;
+use SpecialOffersModule\FormManager;
 
 class SpecialOffers extends Module
 { 
