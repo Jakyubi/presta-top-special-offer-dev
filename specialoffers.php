@@ -3,19 +3,16 @@ if(!defined('_PS_VERSION_')){
     exit;
 }
 
-require_once __DIR__.'/classes/BannerManager.php';
-require_once __DIR__.'/classes/FormManager.php';
+require_once __DIR__.'/vendor/autoload.php';
 
-
+use SpecialoffersModule\BannerManager;
+use SpecialoffersModule\FormManager;
 
 class SpecialOffers extends Module
 { 
-
-
     public $bannerManager;
     public $formManager;
 
-    
     public function __construct()
     {
         $this->name = 'specialoffers';
