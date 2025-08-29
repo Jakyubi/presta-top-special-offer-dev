@@ -1,6 +1,10 @@
 <?php
-
-
+namespace SpecialOffersModule;
+use DbQUery;
+use Db;
+use InvalidArgumentException;
+use Tools;
+use DateTime;
 
 class BannerManager
 {
@@ -43,8 +47,6 @@ class BannerManager
             }
         }
 
-
-
         $allowedSortFields = ['id_banner', 'id_group', 'id_lang', 'date_start', 'date_end', 'enabled'];
         if(!in_array($sort, $allowedSortFields)){
             $sort = 'id_group';
@@ -74,7 +76,6 @@ class BannerManager
         }
 
         return (int)Db::getInstance()->getValue($sql);
-
     }
 
     public function getBannersByGroup($idGroup)
@@ -129,7 +130,6 @@ class BannerManager
         }
     }
 
-
     public function deleteBanner($idGroup)
     {
         if (!is_numeric($idGroup)) {
@@ -174,8 +174,4 @@ class BannerManager
         $d = DateTime::createFromFormat('Y-m-d H:i:s', $date);
         return $d && $d->format('Y-m-d H:i:s') === $date;
     }
-
-
-
-
 }
