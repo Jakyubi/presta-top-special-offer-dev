@@ -1,4 +1,11 @@
 <?php
+namespace SpecialOffersModule;
+use Language;
+use Configuration;
+use Tools;
+use HelperForm;
+use HelperList;
+use AdminController;
 
 class FormManager
 {
@@ -10,9 +17,7 @@ class FormManager
 
     public function displaySettingsForm($bannerEdit = null)
     {
-        
         $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
-
 
         $commonData = [
             'enabled' => 1,
